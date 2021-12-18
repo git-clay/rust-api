@@ -23,6 +23,10 @@ pub struct NewUser {
     pub first_name: String,
 }
 
+/* 
+    I would move this into a DAO on a larger project. 
+    If objects need to be joined, I would add repositories for the more complicated queries
+*/
 impl User {
 
     pub fn get_all_users(conn: &PgConnection) -> Vec<User> {

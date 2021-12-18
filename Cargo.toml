@@ -1,5 +1,5 @@
 [package]
-name = "filecoin"
+name = "rust-api"
 version = "0.1.0"
 authors = ["claycode <claycodedev@gmail.com>"]
 edition = "2018"
