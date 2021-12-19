@@ -22,6 +22,8 @@ mod db;
 mod routes;
 mod models;
 mod schema;
+mod structs;
+mod services;
 
 fn rocket() -> rocket::Rocket {
     dotenv().ok();
@@ -34,8 +36,8 @@ fn rocket() -> rocket::Rocket {
         .mount(
             "/api/v1/",
             routes![
-                routes::user_route::register, 
-                routes::user_route::login
+                routes::user_route::register_user, 
+                routes::user_route::login_user
             ],
         )
 }
