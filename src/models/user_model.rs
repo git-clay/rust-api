@@ -1,4 +1,3 @@
-use crate::db::Conn as DbConn;
 use crate::schema::users;
 use crate::schema::users::dsl::users as all_users;
 use crate::structs::auth_struct::LoginRequest;
@@ -30,13 +29,6 @@ pub struct NewUser {
     If objects need to be joined, I would add repositories for the more complicated queries
 */
 impl User {
-    pub fn get_all_users(conn: &PgConnection) -> Vec<User> {
-        all_users
-            .order(users::id.desc())
-            .load::<User>(conn)
-            .expect("error!")
-    }
-
     pub fn insert_user(user: NewUser, conn: &PgConnection) -> bool {
         diesel::insert_into(users::table)
             .values(user)

@@ -6,14 +6,12 @@ use crate::structs::auth_struct::LoginRequest;
 
 use argon2::{self, Config};
 use chrono::Utc;
+use jsonwebtoken::TokenData;
 use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
-use rocket::http::HeaderMap;
 use rocket::http::Status;
 use rocket::request::FromRequest;
 use rocket::request::Outcome;
 use rocket::Request;
-use rocket::Response;
-use std::convert::Infallible;
 use std::env;
 use std::fmt;
 
@@ -40,7 +38,6 @@ pub struct Token(String);
 #[derive(Debug)]
 pub enum ApiTokenError {
     Missing,
-    Invalid,
 }
 fn jwt_secret() -> String {
     env::var("JWT_SECRET").expect("set JWT_SECRET")
@@ -65,12 +62,12 @@ impl<'a, 'r> FromRequest<'a, 'r> for Token {
         }
     }
 }
-fn authorize(jwt: &str) {
+fn authorize(jwt: &str) -> Result<TokenData<Claims>, jsonwebtoken::errors::Error> {
     decode::<Claims>(
         &jwt.to_string(),
         &DecodingKey::from_secret(jwt_secret().as_bytes()),
         &Validation::new(Algorithm::HS512),
-    );
+    )
 }
 
 fn create_jwt(user: &User) -> String {

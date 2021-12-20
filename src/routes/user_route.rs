@@ -17,7 +17,7 @@ pub fn register_user(conn: DbConn, new_user: Json<LoginRequest>) -> Json<Value> 
 pub fn login_user(conn: DbConn, login: Json<LoginRequest>) -> Json<Value> {
     let token = handle_login(conn, login.into_inner());
     Json(json!({
-        "status": match &token{Some(t)=> 200, None=>401},
+        "status": match &token{Some(_)=> 200, None=>401},
         "token": Some(&token)
     }))
 }
