@@ -19,11 +19,11 @@ use std::env;
 use std::process::Command;
 
 mod db;
-mod routes;
 mod models;
+mod routes;
 mod schema;
-mod structs;
 mod services;
+mod structs;
 
 fn rocket() -> rocket::Rocket {
     dotenv().ok();
@@ -31,15 +31,14 @@ fn rocket() -> rocket::Rocket {
     let database_url = env::var("DATABASE_URL").expect("set DATABASE_URL");
 
     let pool = db::init_pool(database_url);
-    rocket::ignite()
-        .manage(pool)
-        .mount(
-            "/api/v1/",
-            routes![
-                routes::user_route::register_user, 
-                routes::user_route::login_user
-            ],
-        )
+    rocket::ignite().manage(pool).mount(
+        "/api/v1/",
+        routes![
+            routes::user_route::register_user,
+            routes::user_route::login_user,
+            routes::ipfs_route::ipfs_hash
+        ],
+    )
 }
 
 fn main() {

@@ -21,6 +21,7 @@ jsonwebtoken = "=7.2"
 chrono = "0.4"
 sha3 = "0.9"
 rust-argon2 = "0.8.3"
+ipfsapi = "0.2"
 
 
 [dependencies.rocket_contrib]

@@ -7,6 +7,13 @@ use crate::structs::auth_struct::LoginRequest;
 use argon2::{self, Config};
 use chrono::Utc;
 use jsonwebtoken::{decode, encode, Algorithm, DecodingKey, EncodingKey, Header, Validation};
+use rocket::http::HeaderMap;
+use rocket::http::Status;
+use rocket::request::FromRequest;
+use rocket::request::Outcome;
+use rocket::Request;
+use rocket::Response;
+use std::convert::Infallible;
 use std::env;
 use std::fmt;
 
@@ -29,8 +36,44 @@ struct Claims {
     exp: usize,
 }
 
+pub struct Token(String);
+#[derive(Debug)]
+pub enum ApiTokenError {
+    Missing,
+    Invalid,
+}
+fn jwt_secret() -> String {
+    env::var("JWT_SECRET").expect("set JWT_SECRET")
+}
+
+impl<'a, 'r> FromRequest<'a, 'r> for Token {
+    type Error = ApiTokenError;
+
+    fn from_request(request: &'a Request<'r>) -> Outcome<Self, Self::Error> {
+        let bearer = request.headers().get_one("Authorization");
+
+        if let Some(bearer) = bearer {
+            let token: String = bearer
+                .chars()
+                .take(0)
+                .chain(bearer.chars().skip(7))
+                .collect();
+            authorize(&token);
+            Outcome::Success(Token(token.to_string()))
+        } else {
+            Outcome::Failure((Status::Unauthorized, ApiTokenError::Missing))
+        }
+    }
+}
+fn authorize(jwt: &str) {
+    decode::<Claims>(
+        &jwt.to_string(),
+        &DecodingKey::from_secret(jwt_secret().as_bytes()),
+        &Validation::new(Algorithm::HS512),
+    );
+}
+
 fn create_jwt(user: &User) -> String {
-    let JWT_SECRET: String = env::var("JWT_SECRET").expect("set JWT_SECRET");
     let expiration = Utc::now()
         .checked_add_signed(chrono::Duration::minutes(TOKEN_EXPIRATION_MINUTES))
         .expect("valid timestamp")
@@ -48,11 +91,10 @@ fn create_jwt(user: &User) -> String {
     token += &encode(
         &header,
         &claims,
-        &EncodingKey::from_secret(JWT_SECRET.as_bytes()),
+        &EncodingKey::from_secret(jwt_secret().as_bytes()),
     )
     .unwrap();
     token
-    // .map_err(|_| Error::JWTTokenCreationError)
 }
 
 fn password_hasher(password: &String) -> String {
